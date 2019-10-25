@@ -2,8 +2,8 @@
 
 
 
-             PWR          FEED THREAD        MM  IN  TPI
+             FWD REV  MPG  FEED  THREAD    MM  IN  TPI
 
                    R   P   M            V  A  L  U  E
 
-             SET  MODE UNIT           D O W N  UUUUPPPPP
+             PWR SET DIR MODE UNIT    D O W N  UUUUPPPPP
