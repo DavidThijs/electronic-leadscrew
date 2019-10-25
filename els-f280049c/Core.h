@@ -5,6 +5,10 @@
 //
 // Copyright (c) 2019 James Clough
 //
+// Modified by Denis Tikhonov to use an additional MPG input and a left/right lever
+// for lathes that have no half-nuts and the nut is directly coupled to the apron.
+//
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -29,28 +33,29 @@
 
 #include "StepperDrive.h"
 #include "Encoder.h"
+#include "MPG.h"
 #include "ControlPanel.h"
 #include "Tables.h"
-
 
 class Core
 {
 private:
+    MPG *mpg;
     Encoder *encoder;
     StepperDrive *stepperDrive;
 
-#ifdef USE_FLOATING_POINT
     float feed;
     float previousFeed;
-#else
-    const FEED_THREAD *feed;
-    const FEED_THREAD *previousFeed;
-#endif // USE_FLOATING_POINT
 
     int16 feedDirection;
     int16 previousFeedDirection;
+    
+    bool MPG_ACTIVE;
+    bool THREADING_ACTIVE;
 
     Uint32 previousSpindlePosition;
+    int32 displayValue;
+    Uint32 previousMPGPosition;
 
     int32 feedRatio(Uint32 count);
 
@@ -59,6 +64,8 @@ public:
 
     void setFeed(const FEED_THREAD *feed);
     void setReverse(bool reverse);
+    void setThreading(bool threading);
+    void setMPGActive(bool mpg_selected);
     Uint16 getRPM(void);
     bool isAlarm();
 
@@ -67,15 +74,12 @@ public:
 
 inline void Core :: setFeed(const FEED_THREAD *feed)
 {
-#ifdef USE_FLOATING_POINT
     this->feed = (float)feed->numerator / feed->denominator;
-#else
-    this->feed = feed;
-#endif // USE_FLOATING_POINT
 }
 
 inline Uint16 Core :: getRPM(void)
 {
+     //return displayValue; // For testing
     return encoder->getRPM();
 }
 
@@ -86,24 +90,39 @@ inline bool Core :: isAlarm()
 
 inline int32 Core :: feedRatio(Uint32 count)
 {
-#ifdef USE_FLOATING_POINT
     return ((float)count) * this->feed * feedDirection;
-#else // USE_FLOATING_POINT
-    return ((long long)count) * feed->numerator / feed->denominator * feedDirection;
-#endif // USE_FLOATING_POINT
 }
 
 inline void Core :: ISR( void )
 {
-    if( this->feed != NULL ) {
+    if( this->feed != NULL ) {  // Feed also works in MPG mode so leave it alone
+
         // read the encoder
-        Uint32 spindlePosition = encoder->getPosition();
+           int32 spindlePosition = encoder->getPosition(); // Overflows at/to 65535, max value of Uint16
+           Uint32 MPGPosition = mpg->getPosition();
+           int32 MPGDelta = 0;
+           int32 desiredSteps = 0;
 
-        // calculate the desired stepper position
-        int32 desiredSteps = feedRatio(spindlePosition);
-        stepperDrive->setDesiredPosition(desiredSteps);
+            desiredSteps = feedRatio(spindlePosition);
+            displayValue = spindlePosition;
 
-        // compensate for encoder overflow/underflow
+
+           if(THREADING_ACTIVE != true){   // If we are in threading mode skip lever and MPG calculation
+
+                    if(mpg->isLeverLeft() != false && mpg->isLeverRight() != false) stepperDrive->setCurrentPosition(desiredSteps); // If lever is in center position stop movement based on spindle rotation
+
+                     MPGDelta = MPGPosition - previousMPGPosition;
+
+                     if( MPGPosition < previousMPGPosition && previousMPGPosition - MPGPosition > mpg->getMaxCount()/2) MPGDelta = MPGPosition + mpg->getMaxCount() - previousMPGPosition; // Small MPGPos + Max Count - Big PrevPos = distance from rollover point + distance to rollover point as a positive number
+                     if( MPGPosition > previousMPGPosition && MPGPosition - previousMPGPosition > mpg->getMaxCount()/2) MPGDelta = MPGPosition - previousMPGPosition - mpg->getMaxCount(); // Same thing but negative
+
+                     }// if THREADING_ACTIVE
+
+          stepperDrive->incrementCurrentPosition(MPGDelta*MPG_FEED);// Works only because MPG_FEED = 1. Will break with values other than 1, 2, 3 etc.
+         stepperDrive->setDesiredPosition(desiredSteps);
+
+          // compensate for encoder overflow/underflow
+
         if( spindlePosition < previousSpindlePosition && previousSpindlePosition - spindlePosition > encoder->getMaxCount()/2 ) {
             stepperDrive->incrementCurrentPosition(-1 * feedRatio(encoder->getMaxCount()));
         }
@@ -112,16 +131,15 @@ inline void Core :: ISR( void )
         }
 
         // if the feed or direction changed, reset sync to avoid a big step
-        if( feed != previousFeed || feedDirection != previousFeedDirection) {
+        if( feed != previousFeed || feedDirection != previousFeedDirection){
             stepperDrive->setCurrentPosition(desiredSteps);
         }
 
         // remember values for next time
         previousSpindlePosition = spindlePosition;
+        previousMPGPosition = MPGPosition;
         previousFeedDirection = feedDirection;
         previousFeed = feed;
-
-        // service the stepper drive state machine
         stepperDrive->ISR();
     }
 }

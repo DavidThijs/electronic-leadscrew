@@ -78,9 +78,9 @@
 #define LED_MM (1<<2)
 #define LED_THREAD (1<<3)
 #define LED_FEED (1<<4)
-#define LED_REVERSE (1<<5)
-#define LED_FORWARD (1<<6)
-#define LED_POWER (1<<7)
+#define LED_MPG (1<<5) // Not used but leave it here
+#define LED_REVERSE (1<<6)
+#define LED_FORWARD (1<<7)
 
 struct LED_BITS
 {
@@ -89,9 +89,10 @@ struct LED_BITS
     Uint16 MM:1;
     Uint16 THREAD:1;
     Uint16 FEED:1;
+    Uint16 MPG:1; // Not used but leave it here
+
     Uint16 REVERSE:1;
     Uint16 FORWARD:1;
-    Uint16 POWER:1;
 };
 
 typedef union LED_REG

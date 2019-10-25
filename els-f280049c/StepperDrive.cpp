@@ -48,7 +48,7 @@ void StepperDrive :: initHardware(void)
     // GPIO0 = Step
     // GPIO1 = Direction
     // GPIO6 - Enable
-    // GPIO
+    // GPIO7 - Alarm Input
     //
     EALLOW;
     GpioCtrlRegs.GPAMUX1.bit.GPIO0 = 0;

@@ -83,6 +83,7 @@ private:
     // Desired position of the motor, in steps
     //
     int32 desiredPosition;
+    int32 positionIncrement;
 
     //
     // current state-machine state
@@ -98,8 +99,8 @@ public:
     void setDesiredPosition(int32 steps);
     void incrementCurrentPosition(int32 increment);
     void setCurrentPosition(int32 position);
-
-    bool isAlarm();
+    int32 reportPosition(void);
+    bool isAlarm(); // Looks like isAlarm is not supposed to work
 
     void ISR(void);
 };
@@ -112,11 +113,19 @@ inline void StepperDrive :: setDesiredPosition(int32 steps)
 inline void StepperDrive :: incrementCurrentPosition(int32 increment)
 {
     this->currentPosition += increment;
+    this->positionIncrement = increment;
 }
 
 inline void StepperDrive :: setCurrentPosition(int32 position)
 {
     this->currentPosition = position;
+}
+
+inline int32 StepperDrive :: reportPosition()
+{
+
+    return this->positionIncrement;
+
 }
 
 inline bool StepperDrive :: isAlarm()

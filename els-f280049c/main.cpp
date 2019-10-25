@@ -5,6 +5,10 @@
 //
 // Copyright (c) 2019 James Clough
 //
+// Modified by Denis Tikhonov to use an additional MPG input and a left/right lever
+// for lathes that have no half-nuts and the nut is directly coupled to the apron.
+//
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -25,10 +29,13 @@
 
 
 #include "F28x_Project.h"
+
 #include "Configuration.h"
 #include "SanityCheck.h"
 #include "ControlPanel.h"
-#include "EEPROM.h"
+
+#include "MPG.h"
+
 #include "StepperDrive.h"
 #include "Encoder.h"
 
@@ -47,7 +54,7 @@ __interrupt void cpu_timer0_isr(void);
 //
 
 // Debug harness
-Debug debug;
+//Debug debug;
 
 // Feed table factory
 FeedTableFactory feedTableFactory;
@@ -58,8 +65,8 @@ SPIBus spiBus;
 // Control Panel driver
 ControlPanel controlPanel(&spiBus);
 
-// EEPROM driver
-EEPROM eeprom(&spiBus);
+// MPG Driver
+MPG mpg;
 
 // Encoder driver
 Encoder encoder;
@@ -71,10 +78,11 @@ StepperDrive stepperDrive;
 Core core(&encoder, &stepperDrive);
 
 // User interface
-UserInterface userInterface(&controlPanel, &core, &feedTableFactory);
+UserInterface userInterface(&controlPanel, &core, &feedTableFactory, &mpg);
 
 void main(void)
 {
+/*
 #ifdef _FLASH
     // Copy time critical code and Flash setup code to RAM
     // The RamfuncsLoadStart, RamfuncsLoadEnd, and RamfuncsRunStart
@@ -85,10 +93,11 @@ void main(void)
     // This configures the MCU to pre-fetch instructions from flash.
     InitFlash();
 #endif
+*/
 
     // Initialize System Control:
     // PLL, WatchDog, enable Peripheral Clocks
-    InitSysCtrl();
+     InitSysCtrl();
 
     // Disable CPU interrupts
     DINT;
@@ -117,10 +126,10 @@ void main(void)
     CpuTimer0Regs.TCR.all = 0x4001;
 
     // Initialize peripherals and pins
-    debug.initHardware();
     spiBus.initHardware();
+
     controlPanel.initHardware();
-    eeprom.initHardware();
+    mpg.initHardware(); // Inputs for lever are here too
     stepperDrive.initHardware();
     encoder.initHardware();
 
@@ -131,19 +140,14 @@ void main(void)
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
 
     // Enable global Interrupts and higher priority real-time debug events
-    EINT;
-    ERTM;
+    EINT; // enable interrupts
+    ERTM; // enable real-time debug mode in the core
 
     // User interface loop
     for(;;) {
-        // mark beginning of loop for debugging
-        debug.begin2();
 
         // service the user interface
         userInterface.loop();
-
-        // mark end of loop for debugging
-        debug.end2();
 
         // delay
         DELAY_US(1000000 / UI_REFRESH_RATE_HZ);
@@ -157,14 +161,8 @@ cpu_timer0_isr(void)
 {
     CpuTimer0.InterruptCount++;
 
-    // flag entrance to ISR for timing
-    debug.begin1();
-
     // service the Core engine ISR, which in turn services the StepperDrive ISR
     core.ISR();
-
-    // flag exit from ISR for timing
-    debug.end1();
 
     //
     // Acknowledge this interrupt to receive more interrupts from group 1

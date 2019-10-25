@@ -5,6 +5,10 @@
 //
 // Copyright (c) 2019 James Clough
 //
+// Modified by Denis Tikhonov to use an additional MPG input and a left/right lever
+// for lathes that have no half-nuts and the nut is directly coupled to the apron.
+//
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -29,17 +33,45 @@
 
 
 
-Core :: Core( Encoder *encoder, StepperDrive *stepperDrive )
+Core :: Core(Encoder *encoder, StepperDrive *stepperDrive)
 {
     this->encoder = encoder;
     this->stepperDrive = stepperDrive;
+    
+    this->MPG_ACTIVE = true;
+    this->THREADING_ACTIVE = false;
 
     this->feed = NULL;
     this->feedDirection = 0;
 
+    this->previousMPGPosition = 0;
     this->previousSpindlePosition = 0;
     this->previousFeedDirection = 0;
     this->previousFeed = NULL;
+}
+
+
+void Core :: setMPGActive(bool mpg_selected)
+{
+    if( mpg_selected )
+    {
+        this->MPG_ACTIVE = true;
+    }
+    else
+    {
+        this->MPG_ACTIVE = false;
+    }
+}
+void Core :: setThreading(bool threading)
+{
+    if( threading )
+    {
+        this->THREADING_ACTIVE = true;
+    }
+    else
+    {
+        this->THREADING_ACTIVE = false;
+    }
 }
 
 void Core :: setReverse(bool reverse)

@@ -92,6 +92,8 @@ const FEED_THREAD inch_thread_table[] =
 const FEED_THREAD inch_feed_table[] =
 {
  { .display = {POINT, ZERO, ZERO,  ONE},    .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(1) },
+ 
+ #if defined(MOSTLY_INCH)
  { .display = {POINT, ZERO, ZERO,  TWO},    .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(2) },
  { .display = {POINT, ZERO, ZERO,  THREE},  .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(3) },
  { .display = {POINT, ZERO, ZERO,  FOUR},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(4) },
@@ -100,7 +102,10 @@ const FEED_THREAD inch_feed_table[] =
  { .display = {POINT, ZERO, ZERO,  SEVEN},  .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(7) },
  { .display = {POINT, ZERO, ZERO,  EIGHT},  .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(8) },
  { .display = {POINT, ZERO, ZERO,  NINE},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(9) },
+ #endif
+ 
  { .display = {POINT, ZERO, ONE,   ZERO},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(10) },
+ #if defined(MOSTLY_INCH)
  { .display = {POINT, ZERO, ONE,   ONE},    .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(11) },
  { .display = {POINT, ZERO, ONE,   TWO},    .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(12) },
  { .display = {POINT, ZERO, ONE,   THREE},  .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(13) },
@@ -111,12 +116,24 @@ const FEED_THREAD inch_feed_table[] =
  { .display = {POINT, ZERO, TWO,   SIX},    .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(26) },
  { .display = {POINT, ZERO, THREE, ZERO},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(30) },
  { .display = {POINT, ZERO, THREE, FIVE},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(35) },
+  #endif
  { .display = {POINT, ZERO, FOUR,  ZERO},   .leds = LED_FEED | LED_INCH, THOU_IN_FRACTION(40) },
+ 
 };
 
-
-
-
+//
+// INCH MPG DEFINITIONS
+//
+// Each row in the table defines a standard imperial feed rate, with the display data,
+// LED indicator states and gear ratio fraction to use.
+//
+/*
+const FEED_THREAD inch_mpg_table[] =
+{
+ { .display = {POINT, ZERO, ZERO,  ONE},    .leds = LED_MPG | LED_INCH, THOU_IN_FRACTION(100) },  // This is feed per ROTATION of the MPG
+ { .display = {ZERO, POINT, ZERO,  ONE},    .leds = LED_MPG | LED_INCH, THOU_IN_FRACTION(1000) }, // This is feed per ROTATION of the MPG
+};
+*/
 //
 // METRIC THREAD DEFINITIONS
 //
@@ -170,6 +187,7 @@ const FEED_THREAD metric_thread_table[] =
 const FEED_THREAD metric_feed_table[] =
 {
  { .display = {BLANK, POINT,       ZERO,  TWO},   .leds = LED_FEED | LED_MM, HMM_FRACTION(2) },
+ #if defined(MOSTLY_METRIC)
  { .display = {BLANK, POINT,       ZERO,  FIVE},  .leds = LED_FEED | LED_MM, HMM_FRACTION(5) },
  { .display = {BLANK, POINT,       ZERO,  SEVEN}, .leds = LED_FEED | LED_MM, HMM_FRACTION(7) },
  { .display = {BLANK, POINT,       ONE,   ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(10) },
@@ -178,7 +196,9 @@ const FEED_THREAD metric_feed_table[] =
  { .display = {BLANK, POINT,       ONE,   SEVEN}, .leds = LED_FEED | LED_MM, HMM_FRACTION(17) },
  { .display = {BLANK, POINT,       TWO,   ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(20) },
  { .display = {BLANK, POINT,       TWO,   TWO},   .leds = LED_FEED | LED_MM, HMM_FRACTION(22) },
+ #endif
  { .display = {BLANK, POINT,       TWO,   FIVE},  .leds = LED_FEED | LED_MM, HMM_FRACTION(25) },
+ #if defined(MOSTLY_METRIC)
  { .display = {BLANK, POINT,       TWO,   SEVEN}, .leds = LED_FEED | LED_MM, HMM_FRACTION(27) },
  { .display = {BLANK, POINT,       THREE, ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(30) },
  { .display = {BLANK, POINT,       THREE, FIVE},  .leds = LED_FEED | LED_MM, HMM_FRACTION(35) },
@@ -189,11 +209,23 @@ const FEED_THREAD metric_feed_table[] =
  { .display = {BLANK, POINT,       SIX,   ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(60) },
  { .display = {BLANK, POINT,       SEVEN, ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(70) },
  { .display = {BLANK, POINT,       EIGHT, FIVE},  .leds = LED_FEED | LED_MM, HMM_FRACTION(85) },
+ #endif
  { .display = {BLANK, ONE | POINT, ZERO,  ZERO},  .leds = LED_FEED | LED_MM, HMM_FRACTION(100) },
 };
 
-
-
+//
+// METRIC MPG DEFINITIONS
+//
+// Each row in the table defines a standard metric feed via MPG, with the display data,
+// LED indicator states and gear ratio fraction to use.
+//
+/*
+const FEED_THREAD metric_mpg_table[] =
+{
+ { .display = {BLANK, POINT,       ZERO,  ONE},   .leds = LED_MPG | LED_MM, HMM_FRACTION(100) },
+ { .display = {BLANK, POINT,       ONE,   ZERO},  .leds = LED_MPG | LED_MM, HMM_FRACTION(1000) },
+};
+*/
 
 
 FeedTable::FeedTable(const FEED_THREAD *table, Uint16 numRows, Uint16 defaultSelection)
@@ -228,17 +260,27 @@ const FEED_THREAD *FeedTable :: previous(void)
 
 FeedTableFactory::FeedTableFactory(void):
         inchThreads(inch_thread_table, sizeof(inch_thread_table)/sizeof(inch_thread_table[0]), 12),
-        inchFeeds(inch_feed_table, sizeof(inch_feed_table)/sizeof(inch_feed_table[0]), 4),
+        inchFeeds(inch_feed_table, sizeof(inch_feed_table)/sizeof(inch_feed_table[0]), 2),  // Last number represents default value at startup
+   //     inchMPG(inch_mpg_table, sizeof(inch_mpg_table)/sizeof(inch_mpg_table[0]), 1), // Not used
+
         metricThreads(metric_thread_table, sizeof(metric_thread_table)/sizeof(metric_thread_table[0]), 6),
-        metricFeeds(metric_feed_table, sizeof(metric_feed_table)/sizeof(metric_feed_table[0]), 4)
+        metricFeeds(metric_feed_table, sizeof(metric_feed_table)/sizeof(metric_feed_table[0]), 3) //,
+     //   metricMPG(metric_mpg_table, sizeof(metric_mpg_table)/sizeof(metric_mpg_table[0]), 1) // Not used
 {
 }
 
-FeedTable *FeedTableFactory::getFeedTable(bool metric, bool thread)
+FeedTable *FeedTableFactory::getFeedTable(bool metric, bool thread) // , bool mode_mpg)
 {
     if( metric )
     {
-        if( thread )
+        /*
+        if( mode_mpg )
+        {
+            return &this->metricMPG;   // Not used
+        }
+        else*/
+
+            if( thread )
         {
             return &this->metricThreads;
         }
@@ -249,6 +291,12 @@ FeedTable *FeedTableFactory::getFeedTable(bool metric, bool thread)
     }
     else
     {
+        /*
+        if( mode_mpg )
+        {
+            return &this->inchMPG;   // Not used
+        }
+        else */
         if( thread )
         {
             return &this->inchThreads;

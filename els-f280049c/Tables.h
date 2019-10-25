@@ -5,6 +5,10 @@
 //
 // Copyright (c) 2019 James Clough
 //
+// Modified by Denis Tikhonov to use an additional MPG input and a left/right lever
+// for lathes that have no half-nuts and the nut is directly coupled to the apron.
+//
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -64,13 +68,16 @@ class FeedTableFactory
 private:
     FeedTable inchThreads;
     FeedTable inchFeeds;
+   // FeedTable inchMPG; // We don't really need this table but since I've already implemented hybrid lever/mpg code
+
     FeedTable metricThreads;
     FeedTable metricFeeds;
+  //  FeedTable metricMPG;
 
 public:
     FeedTableFactory(void);
 
-    FeedTable *getFeedTable(bool metric, bool thread);
+    FeedTable *getFeedTable(bool metric, bool thread); //, bool mode_mpg);
 };
 
 

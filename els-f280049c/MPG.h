@@ -8,7 +8,6 @@
 // Modified by Denis Tikhonov to use an additional MPG input and a left/right lever
 // for lathes that have no half-nuts and the nut is directly coupled to the apron.
 //
-//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -28,57 +27,61 @@
 // SOFTWARE.
 
 
-#ifndef __USERINTERFACE_H
-#define __USERINTERFACE_H
+#ifndef __MPG_H
+#define __MPG_H
 
-#include "ControlPanel.h"
-#include "Core.h"
-#include "Tables.h"
-#include "MPG.h"
+#include "F28x_Project.h"
+#include "Configuration.h"
 
 
-typedef struct MESSAGE
-{
-    Uint16 message[8];
-    Uint16 displayTime;
-    const MESSAGE *next;
-} MESSAGE;
 
-class UserInterface
+
+#define LEVER_LEFT_PIN GPIO12
+#define LEVER_RIGHT_PIN GPIO34
+//#define LEVER_LEFT_PIN GPIO12
+//#define LEVER_LEFT_PIN GPIO12
+
+#define GPIO_SET(pin) GpioDataRegs.GPASET.bit.pin = 1
+#define GPIO_CLEAR(pin) GpioDataRegs.GPACLEAR.bit.pin = 1
+#define GPIO_GET_A(pin) GpioDataRegs.GPADAT.bit.pin
+#define GPIO_GET_B(pin) GpioDataRegs.GPBDAT.bit.pin
+
+
+class MPG
 {
 private:
-    ControlPanel *controlPanel;
-    Core *core;
-    FeedTableFactory *feedTableFactory;
-    MPG *mpg;
-
-    bool metric;
-    bool thread;
-    bool mpg_selected;
-    bool reverse;
-    bool leverLeft;
-    bool leverRight;
-    bool previousLeverLeft;
-    bool previousLeverRight;
-    Uint16 mode_selector;   // 1 = MPG/Lever Hybrid Feed, 2 = Thread. Many more modes can be added.
-
-    FeedTable *feedTable;
-
-    KEY_REG keys;
-
-    const MESSAGE *message;
-    Uint16 messageTime;
-
-    const FEED_THREAD *loadFeedTable();
-    LED_REG calculateLEDs(const FEED_THREAD *selectedFeed);
-    void setMessage(const MESSAGE *message);
-    void overrideMessage( void );
+    Uint32 previous;
+    Uint16 rpm;
 
 public:
-    UserInterface(ControlPanel *controlPanel, Core *core, FeedTableFactory *feedTableFactory, MPG *mpg);
+    MPG( void );
+    void initHardware( void );
 
+    bool isLeverLeft();
+    bool isLeverRight();
 
-    void loop( void );
+    Uint16 getRPM( void );
+    Uint32 getPosition( void );
+    Uint32 getMaxCount( void );
 };
 
-#endif // __USERINTERFACE_H
+
+inline Uint32 MPG :: getPosition(void)
+{
+    return EQep2Regs.QPOSCNT;
+}
+
+inline Uint32 MPG :: getMaxCount(void)
+{
+    return _MPG_MAX_COUNT;
+}
+
+inline bool MPG :: isLeverLeft()
+{
+    return GPIO_GET_A(LEVER_LEFT_PIN);
+}
+inline bool MPG :: isLeverRight()
+{
+    return GPIO_GET_B(LEVER_RIGHT_PIN);
+}
+#endif // __MPG_H
